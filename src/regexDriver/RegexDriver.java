@@ -19,16 +19,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.print.PrinterException;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.Date;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,13 +32,9 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.border.BevelBorder;
@@ -105,16 +93,15 @@ public class RegexDriver {
 			Matcher matcher = pattern.matcher((CharSequence) cbSourceString.getSelectedItem());
 
 			if (matcher.matches()) {
-				log.info("Match");
-				txtLog1.append(String.format("end = %d, start = %s%n", matcher.end(), matcher.start()));
-				log.infof("start = %d, end = %d%n",matcher.start(), matcher.end());
+				log.infof(Color.RED,"%s%n","Match");
+				log.infof("start = %d, end = %d%n", matcher.start(), matcher.end());
 			} else {
-				log.info("No Match");
+				log.infof(Color.RED,"%s%n","No Match");
 				noChange("<< MATCHES - nothing matched >>");
 			} // if
 		} catch (Exception e) {
 			log.errorf("%s - %s%n%n", "In Catch", e.getMessage());
-		} //try
+		} // try
 		log.addNL();
 	}// doMatch
 
@@ -124,9 +111,10 @@ public class RegexDriver {
 		btnFindNext.setEnabled(false);
 		patternForFind = Pattern.compile((String) cbRegexCode.getSelectedItem());
 		matcherForFind = patternForFind.matcher((CharSequence) cbSourceString.getSelectedItem());
+		log.addNL();
 		try {
 			if (matcherForFind.find()) {
-				log.info("Find");
+				log.infof(Color.RED,"%s%n","Find");
 				log.infof("end = %d, start = %s%n", matcherForFind.end(), matcherForFind.start());
 				log.infof("group = |%s|%n", matcherForFind.group());
 				log.infof("Before group = |%s|%n", sourceText.substring(0, matcherForFind.start()));
@@ -139,19 +127,20 @@ public class RegexDriver {
 		} catch (Exception e) {
 			log.errorf("%s - %s%n%n", "In Catch", e.getMessage());
 		} // try
-		log.addNL();
+
 	}// doFind
 
 	private void doFindNext() {
+		log.addNL();
 		if (matcherForFind.hitEnd()) {
-			postLogMessage("Matcher has hit end");
+			log.info("Matcher has hit end");
 			noChange("<< FIND_NEXT - nothing to search >>");
 		} else {
 			int newStart = matcherForFind.end();
 			if (matcherForFind.find(newStart)) {
 				String sourceText = (String) cbSourceString.getSelectedItem();
 
-				log.info("FindNext");
+				log.infof(Color.RED,"%s%n","FindNext");
 				log.infof("end = %d, start = %s%n", matcherForFind.end(), matcherForFind.start());
 				log.infof("group = |%s|%n", matcherForFind.group());
 				log.infof("Before group = |%s|%n", sourceText.substring(0, matcherForFind.start()));
@@ -171,10 +160,10 @@ public class RegexDriver {
 			Matcher matcher = pattern.matcher((CharSequence) cbSourceString.getSelectedItem());
 
 			if (matcher.lookingAt()) {
-				log.info("LookingAt");
+				log.infof(Color.RED,"%s%n","LookingAt");
 				log.infof("start = %d, end = %s%n", matcher.start(), matcher.end());
 			} else {
-				log.info("Not LookingAt");
+				log.infof(Color.RED,"%s%n","Not LookingAt");
 				noChange("<< LOOKING AT - not looking at >>");
 			} //
 		} catch (Exception e) {
@@ -228,21 +217,6 @@ public class RegexDriver {
 	}// doRemoveFromList
 
 	// ......................................................
-	private void saveLog() {
-		String tempDir = System.getProperty("java.io.tmpdir");
-		try {
-			File logFile = new File(tempDir, "logFile.txt");
-			FileWriter fw = new FileWriter(logFile);
-			fw.write(txtLog1.getText());
-			fw.close();
-			btnSaveLog.setToolTipText(logFile.toString());
-		} catch (IOException e) {
-			System.err.printf("unable to save the Log.%n");
-			e.printStackTrace();
-		}//try
-	}// saveLog
-
-	// ---------------------------------------------------------
 
 	private void noChange(String message) {
 		try {
@@ -253,15 +227,6 @@ public class RegexDriver {
 		} // try
 	}// foundItNot
 
-	private void postLogMessage(String logMessage) {
-		// String message = String.format("%s \t%s - \t%s%n", logMessage,
-		// cbSourceString.getSelectedItem(),
-		// cbRegexCode.getSelectedItem());
-		String message = String.format("%s%n", logMessage);
-		txtLog1.append(message);
-		// log.info(message);
-	}// postLogMessage
-
 	private void cleanOutput() {
 		lblGroupBoundary.setText(" ~ - ~");
 		clearResult();
@@ -270,10 +235,9 @@ public class RegexDriver {
 	private void showGroup(Matcher matcher) {
 
 		int groupCount = matcher.groupCount();
-		postLogMessage(String.format("matcher.groupCount() = %d%n", matcher.groupCount()));
 		log.infof("matcher.groupCount() = %d%n", matcher.groupCount());
 		for (int i = 1; i <= groupCount; i++) {
-			postLogMessage(String.format("group %d = \"%s\"", i, matcher.group(i)));
+			log.infof("group %d = \"%s\"", i, matcher.group(i));
 		} // for
 
 		lblGroupBoundary.setText(String.format("%d - %d", matcher.start(), matcher.end()));
@@ -299,41 +263,6 @@ public class RegexDriver {
 		StyleConstants.setForeground(attrBlue, Color.BLUE);
 	}// setAttributes
 
-	// ........................................................................
-
-	private void setupPopupMenus() {
-		JPopupMenu popupMenu1 = new JPopupMenu();
-		JMenuItem removeItem1 = new JMenuItem("Remove item");
-		removeItem1.setActionCommand(MNU_POP_REMOVE_REGEX);
-		removeItem1.addActionListener(adapterForRegexDriver);
-		popupMenu1.add(removeItem1);
-		cbRegexCode.setComponentPopupMenu(popupMenu1);
-
-		JPopupMenu popupMenu2 = new JPopupMenu();
-		JMenuItem removeItem2 = new JMenuItem("Remove item");
-		removeItem2.setActionCommand(MNU_POP_REMOVE_SOURCE);
-		removeItem2.addActionListener(adapterForRegexDriver);
-		popupMenu2.add(removeItem2);
-		cbSourceString.setComponentPopupMenu(popupMenu2);
-
-		JPopupMenu popupLog = new JPopupMenu();
-		addPopup(txtLog1, popupLog);
-
-		JMenuItem popupLogClear = new JMenuItem("Clear Log");
-		popupLogClear.setActionCommand(PUM_LOG_CLEAR);
-		popupLogClear.addActionListener(adapterForRegexDriver);
-		popupLog.add(popupLogClear);
-
-		JSeparator separator = new JSeparator();
-		popupLog.add(separator);
-
-		JMenuItem popupLogPrint = new JMenuItem("Print Log");
-		popupLogPrint.setActionCommand(PUM_LOG_PRINT);
-		popupLogPrint.addActionListener(adapterForRegexDriver);
-		popupLog.add(popupLogPrint);
-
-		// addPopup(txtLog, popupLog);
-	}// setupPopupMenus
 
 	private void appClose() {
 		Preferences myPrefs = Preferences.userNodeForPackage(RegexDriver.class).node(this.getClass().getSimpleName());
@@ -359,15 +288,14 @@ public class RegexDriver {
 		} // for
 
 		myPrefs = null;
-		System.exit(0);
 	}// appClose
 
 	private void appInit() {
 		Preferences myPrefs = Preferences.userNodeForPackage(RegexDriver.class).node(this.getClass().getSimpleName());
 
+		// frmRegexDriver.setSize(myPrefs.getInt("Width",
+		// 1287),myPrefs.getInt("Height",477));
 		frmRegexDriver.setSize(myPrefs.getInt("Width", 1287), myPrefs.getInt("Height", 477));
-		// frmRegexDriver.setSize(myPrefs.getInt("Width", 1287),myPrefs.getInt("Height",
-		// 477));
 
 		frmRegexDriver.setLocation(myPrefs.getInt("LocX", 100), myPrefs.getInt("LocY", 100));
 		splitPane1.setDividerLocation(myPrefs.getInt("Divider", 250));
@@ -391,14 +319,9 @@ public class RegexDriver {
 		log.setDoc(txtLog.getStyledDocument());
 		log.addTimeStamp("Starting Regex Drive: ");
 		log.addNL(2);
-		
 
 		cbRegexCode.setModel(regexCodeModel);
 		cbSourceString.setModel(sourceStringModel);
-
-		setupPopupMenus();
-		txtLog1.setText(
-				"Right click on this log \r\npane  to print or clear\r\ncontents.\r\n\r\nRight Click on either\r\nRegex Code or Source\r\nString to bring up\r\noption to delete the\r\ncurrently displayed value\r\n");
 	}// appInit
 
 	public RegexDriver() {
@@ -648,29 +571,16 @@ public class RegexDriver {
 		panelRight.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		splitPane1.setRightComponent(panelRight);
 		GridBagLayout gbl_panelRight = new GridBagLayout();
-		gbl_panelRight.columnWidths = new int[] { 0, 50, 0 };
-		gbl_panelRight.rowHeights = new int[] { 0, 0, 0 };
-		gbl_panelRight.columnWeights = new double[] { 1.0, 1.0, Double.MIN_VALUE };
-		gbl_panelRight.rowWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
+		gbl_panelRight.columnWidths = new int[] { 50, 0 };
+		gbl_panelRight.rowHeights = new int[] { 0, 0 };
+		gbl_panelRight.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
+		gbl_panelRight.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
 		panelRight.setLayout(gbl_panelRight);
-
-		JScrollPane scrollPane = new JScrollPane();
-		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
-		gbc_scrollPane.insets = new Insets(0, 0, 5, 5);
-		gbc_scrollPane.fill = GridBagConstraints.BOTH;
-		gbc_scrollPane.gridx = 0;
-		gbc_scrollPane.gridy = 0;
-		panelRight.add(scrollPane, gbc_scrollPane);
-
-		txtLog1 = new JTextArea();
-		txtLog1.setName("txtLog");
-		scrollPane.setViewportView(txtLog1);
 
 		JScrollPane scrollPane_1 = new JScrollPane();
 		GridBagConstraints gbc_scrollPane_1 = new GridBagConstraints();
-		gbc_scrollPane_1.insets = new Insets(0, 0, 5, 0);
 		gbc_scrollPane_1.fill = GridBagConstraints.BOTH;
-		gbc_scrollPane_1.gridx = 1;
+		gbc_scrollPane_1.gridx = 0;
 		gbc_scrollPane_1.gridy = 0;
 		panelRight.add(scrollPane_1, gbc_scrollPane_1);
 
@@ -680,16 +590,6 @@ public class RegexDriver {
 		txtLog = new JTextPane();
 		scrollPane_2.setViewportView(txtLog);
 
-		btnSaveLog = new JButton("Save Log");
-		GridBagConstraints gbc_btnSaveLog = new GridBagConstraints();
-		gbc_btnSaveLog.insets = new Insets(0, 0, 0, 5);
-		gbc_btnSaveLog.fill = GridBagConstraints.HORIZONTAL;
-		gbc_btnSaveLog.gridx = 0;
-		gbc_btnSaveLog.gridy = 1;
-		panelRight.add(btnSaveLog, gbc_btnSaveLog);
-		btnSaveLog.setToolTipText("Nothing saved yet");
-		btnSaveLog.addActionListener(adapterForRegexDriver);
-		btnSaveLog.setActionCommand("btnSaveLog");
 		splitPane1.setDividerLocation(150);
 
 		JPanel panelStatus = new JPanel();
@@ -707,54 +607,9 @@ public class RegexDriver {
 			@Override
 			public void windowClosing(WindowEvent arg0) {
 				appClose();
-			}
+			}// windowClosing
 		});
 	}// initialize
-
-	/* POP UP MENU */
-
-	private static void addPopup(Component component, final JPopupMenu popup) {
-		component.addMouseListener(new MouseAdapter() {
-			public void mousePressed(MouseEvent mouseEvent) {
-				if (mouseEvent.isPopupTrigger()) {
-					showMenu(mouseEvent);
-				} // if popup Trigger
-			}// mousePressed
-
-			public void mouseReleased(MouseEvent mouseEvent) {
-				if (mouseEvent.isPopupTrigger()) {
-					showMenu(mouseEvent);
-				} // if
-			}// mouseReleased
-
-			private void showMenu(MouseEvent e) {
-				popup.show(e.getComponent(), e.getX(), e.getY());
-			}// showMenu
-		});
-	}// addPopup
-
-	private void doLogClear() {
-		txtLog1.setText("");
-	}// doLogClear
-
-	private void doLogPrint() {
-		Font originalFont = txtLog1.getFont();
-		try {
-			String header = "RegexDriver Log";
-			txtLog1.setFont(originalFont.deriveFont(8.0f));
-			MessageFormat headerMessage = new MessageFormat(header);
-			MessageFormat footerMessage = new MessageFormat(new Date().toString() + "           Page - {0}");
-			txtLog1.print(headerMessage, footerMessage);
-			// textPane.setFont(new Font("Courier New", Font.PLAIN, 14));
-			txtLog1.setFont(originalFont);
-		} catch (PrinterException e) {
-			txtLog1.setFont(originalFont);
-			postLogMessage("java.awt.print.PrinterAbortException");
-			System.err.println("java.awt.print.PrinterAbortException");
-			e.printStackTrace();
-		} // try
-	}// doLogPrint
-	/* POP UP MENU */
 
 	public class AdapterForRegexDriver implements ActionListener, ItemListener {
 
@@ -775,9 +630,6 @@ public class RegexDriver {
 			case BTN_LOOKING_AT:
 				doLookingAt();
 				break;
-			case BTN_SAVE_LOG:
-				saveLog();
-				break;
 			case BTN_REPLACE_FIRST:
 				doReplace(false);
 				break;
@@ -788,13 +640,6 @@ public class RegexDriver {
 			case MNU_POP_REMOVE_SOURCE:
 			case MNU_POP_REMOVE_REGEX:
 				doRemoveFromList(actionEvent);
-				break;
-
-			case PUM_LOG_PRINT:
-				doLogPrint();
-				break;
-			case PUM_LOG_CLEAR:
-				doLogClear();
 				break;
 
 			default:
@@ -829,17 +674,12 @@ public class RegexDriver {
 	private static final String BTN_FIND = "btnFind";
 	private static final String BTN_FIND_NEXT = "btnFindNext";
 	private static final String BTN_LOOKING_AT = "btnLookingAt";
-	private static final String BTN_SAVE_LOG = "btnSaveLog";
 	private static final String BTN_REPLACE_FIRST = "btnReplaceFirst";
 	private static final String BTN_REPLACE_ALL = "btnReplaceAll";
 
-	private static final String PUM_LOG_PRINT = "popupLogPrint";
-	private static final String PUM_LOG_CLEAR = "popupLogClear";
-
-	// private static final String EMPTY_STRING = "";
 	private JFrame frmRegexDriver;
 	private JSplitPane splitPane1;
-	private JTextArea txtLog1;
+
 	private JComboBox<String> cbRegexCode;
 	private JComboBox<String> cbSourceString;
 	private JTextField txtReplacement;
@@ -847,7 +687,6 @@ public class RegexDriver {
 	private JTextPane tpResult;
 	private JLabel lblGroupBoundary;
 	private JButton btnFindNext;
-	private JButton btnSaveLog;
 	private JTextPane txtLog;
 
 }// class GUItemplate
