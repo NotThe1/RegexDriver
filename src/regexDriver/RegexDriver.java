@@ -659,9 +659,7 @@ public class RegexDriver {
 			if (model.getIndexOf(object) == -1) {
 				model.insertElementAt((String) object, 0);
 			} // if new
-
 		}// itemStateChanged
-
 	}// class AdapterForRegexDriver CB_REGEX_CODE
 
 	private static final String CB_REGEX_CODE = "cbRegexCode";
