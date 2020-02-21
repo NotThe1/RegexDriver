@@ -1,7 +1,7 @@
 package regexDriver;
 
 /* 
- * uses the appLogger found in project appLogger
+ * uses the appLogger found in Components project
  */
 
 import java.awt.Color;
