@@ -1,5 +1,9 @@
 package regexDriver;
 
+/* 
+ * uses the appLogger found in project appLogger
+ */
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -53,12 +57,10 @@ import javax.swing.text.StyledDocument;
 
 import appLogger.AppLogger;
 
-
-
 public class RegexDriver {
 
 	private AppLogger log = AppLogger.getInstance();
-	
+
 	private AdapterForRegexDriver adapterForRegexDriver = new AdapterForRegexDriver();
 	private StyledDocument doc;
 	private SimpleAttributeSet attrBlack = new SimpleAttributeSet();
@@ -88,35 +90,6 @@ public class RegexDriver {
 		});
 	}// main
 
-	// +++++++++++++++++++++++++++++++++++++++++++++++++
-	/* placeholder for trying things out */
-//	private void actOnResult() {
-//		// private String findComment1(String workingLine){
-//		String netLine = (String) cbSourceString.getSelectedItem();
-//		if (!netLine.contains(";")) {
-//			postLogMessage("NO COMMENTs");
-//			return;
-//		} // if
-//		String comment = null;
-//		Pattern patternForComment = Pattern.compile("('[^']*')|(;)");
-//		Matcher matcherForComment = patternForComment.matcher(netLine);
-//		// int startCommentLoc = 0;
-//		int startFindLoc = 0;
-//		while (!matcherForComment.hitEnd()) {
-//			if (matcherForComment.find(startFindLoc)) {
-//				if ((matcherForComment.group(1) == null) && (matcherForComment.group(2) != null)) {
-//					comment = netLine.substring(matcherForComment.end(2) - 1);
-//					netLine = netLine.substring(0, matcherForComment.end(2) - 1);
-//					break; // found the comment
-//				} // if this is it
-//				startFindLoc = Math.max(matcherForComment.end(1), matcherForComment.end(2));
-//			} // if any match
-//		} // while
-//		postLogMessage("COMMENT: <" + comment + ">");
-//		postLogMessage("netLine: <" + netLine + ">");
-//	}// actOnResult
-		// ---------------------------------------------------------
-
 	private void clearResult() {
 		try {
 			doc.remove(0, doc.getLength());
@@ -127,55 +100,49 @@ public class RegexDriver {
 
 	private void doMatch() {
 		cleanOutput();
-		String logMessage0 = "No Match";
 		try {
 			Pattern pattern = Pattern.compile((String) cbRegexCode.getSelectedItem());
 			Matcher matcher = pattern.matcher((CharSequence) cbSourceString.getSelectedItem());
 
-			// pattern.matches(txtRegexCode.getText(), input)
-
 			if (matcher.matches()) {
-				logMessage0 = foundIt("Match");
+				log.info("Match");
 				txtLog1.append(String.format("end = %d, start = %s%n", matcher.end(), matcher.start()));
-				showGroup(matcher);
+				log.infof("start = %d, end = %d%n",matcher.start(), matcher.end());
 			} else {
+				log.info("No Match");
 				noChange("<< MATCHES - nothing matched >>");
-			} //
+			} // if
 		} catch (Exception e) {
-			String errMessage = String.format("%s - %s%n%n", "In Catch", e.getMessage());
-			txtLog1.append(errMessage);
-		} //
-		postLogMessage(logMessage0);
+			log.errorf("%s - %s%n%n", "In Catch", e.getMessage());
+		} //try
+		log.addNL();
 	}// doMatch
 
 	private void doFind() {
 		cleanOutput();
-		String logMessage = "Not Found";
 		String sourceText = (String) cbSourceString.getSelectedItem();
 		btnFindNext.setEnabled(false);
 		patternForFind = Pattern.compile((String) cbRegexCode.getSelectedItem());
 		matcherForFind = patternForFind.matcher((CharSequence) cbSourceString.getSelectedItem());
 		try {
 			if (matcherForFind.find()) {
-				logMessage = foundIt("Find");
-				txtLog1.append(String.format("end = %d, start = %s%n", matcherForFind.end(), matcherForFind.start()));
-				txtLog1.append(String.format("group = |%s|%n", matcherForFind.group()));
-				txtLog1.append(String.format("Before group = |%s|%n", sourceText.substring(0, matcherForFind.start())));
+				log.info("Find");
+				log.infof("end = %d, start = %s%n", matcherForFind.end(), matcherForFind.start());
+				log.infof("group = |%s|%n", matcherForFind.group());
+				log.infof("Before group = |%s|%n", sourceText.substring(0, matcherForFind.start()));
 				showGroup(matcherForFind);
 				btnFindNext.setEnabled(true);
 			} else {
 				noChange("<< FIND - nothing found >>");
-
+				log.info("Not Found");
 			} // if
 		} catch (Exception e) {
-			String errMessage = String.format("%s - %s%n%n", "In Catch", e.getMessage());
-			txtLog1.append(errMessage);
-		}
-		postLogMessage(logMessage);
+			log.errorf("%s - %s%n%n", "In Catch", e.getMessage());
+		} // try
+		log.addNL();
 	}// doFind
 
 	private void doFindNext() {
-		// String logMessage;
 		if (matcherForFind.hitEnd()) {
 			postLogMessage("Matcher has hit end");
 			noChange("<< FIND_NEXT - nothing to search >>");
@@ -183,10 +150,11 @@ public class RegexDriver {
 			int newStart = matcherForFind.end();
 			if (matcherForFind.find(newStart)) {
 				String sourceText = (String) cbSourceString.getSelectedItem();
-				// String logMessage = foundIt("Find");
-				txtLog1.append(String.format("end = %d, start = %s%n", matcherForFind.end(), matcherForFind.start()));
-				txtLog1.append(String.format("group = |%s|%n", matcherForFind.group()));
-				txtLog1.append(String.format("Before group = |%s|%n", sourceText.substring(0, matcherForFind.start())));
+
+				log.info("FindNext");
+				log.infof("end = %d, start = %s%n", matcherForFind.end(), matcherForFind.start());
+				log.infof("group = |%s|%n", matcherForFind.group());
+				log.infof("Before group = |%s|%n", sourceText.substring(0, matcherForFind.start()));
 				showGroup(matcherForFind);
 				btnFindNext.setEnabled(true);
 			} else {
@@ -194,31 +162,25 @@ public class RegexDriver {
 				btnFindNext.setEnabled(false);
 			} // inner if - else
 		} // outer if - else
-			// int newStart = matcherForFind.end();
-
 	}// doFindNext
 
 	private void doLookingAt() {
 		cleanOutput();
-		String logMessage0 = "Not looking at";
-
 		try {
 			Pattern pattern = Pattern.compile((String) cbRegexCode.getSelectedItem());
 			Matcher matcher = pattern.matcher((CharSequence) cbSourceString.getSelectedItem());
 
 			if (matcher.lookingAt()) {
-				logMessage0 = foundIt("lookingAT");
-				txtLog1.append(String.format("end = %d, start = %s%n", matcher.end(), matcher.start()));
-				showGroup(matcher);
+				log.info("LookingAt");
+				log.infof("start = %d, end = %s%n", matcher.start(), matcher.end());
 			} else {
+				log.info("Not LookingAt");
 				noChange("<< LOOKING AT - not looking at >>");
 			} //
 		} catch (Exception e) {
-			String errMessage = String.format("%s - %s%n%n", "In Catch", e.getMessage());
-			txtLog1.append(errMessage);
+			log.errorf("%s - %s%n%n", "In Catch", e.getMessage());
 		} //
-		postLogMessage(logMessage0);
-
+		log.addNL();
 	}// doLookingAt
 
 	private void doReplace(boolean all) {
@@ -232,7 +194,6 @@ public class RegexDriver {
 			ans = matcher.replaceAll(txtReplacement.getText());
 		} else {
 			ans = matcher.replaceFirst(txtReplacement.getText());
-
 		} // if all
 		SimpleAttributeSet attributeColor;
 		String msg;
@@ -248,7 +209,6 @@ public class RegexDriver {
 		} catch (BadLocationException e) {
 			e.printStackTrace();
 		} // try
-
 	}// doReplace
 
 	private void doRemoveFromList(ActionEvent actionEvent) {
@@ -271,7 +231,7 @@ public class RegexDriver {
 	private void saveLog() {
 		String tempDir = System.getProperty("java.io.tmpdir");
 		try {
-			File logFile = new File(tempDir,"logFile.txt");
+			File logFile = new File(tempDir, "logFile.txt");
 			FileWriter fw = new FileWriter(logFile);
 			fw.write(txtLog1.getText());
 			fw.close();
@@ -279,13 +239,10 @@ public class RegexDriver {
 		} catch (IOException e) {
 			System.err.printf("unable to save the Log.%n");
 			e.printStackTrace();
-		}
+		}//try
 	}// saveLog
 
 	// ---------------------------------------------------------
-	private String foundIt(String typeOfOperation) {
-		return typeOfOperation;
-	}// foundIt
 
 	private void noChange(String message) {
 		try {
@@ -297,10 +254,12 @@ public class RegexDriver {
 	}// foundItNot
 
 	private void postLogMessage(String logMessage) {
-		// String msg = String.format("%s \t%s - \t%s%n", logMessage, cbSourceString.getSelectedItem(),
+		// String message = String.format("%s \t%s - \t%s%n", logMessage,
+		// cbSourceString.getSelectedItem(),
 		// cbRegexCode.getSelectedItem());
-		String msg = String.format("%s%n", logMessage);
-		txtLog1.append(msg);
+		String message = String.format("%s%n", logMessage);
+		txtLog1.append(message);
+		// log.info(message);
 	}// postLogMessage
 
 	private void cleanOutput() {
@@ -312,6 +271,7 @@ public class RegexDriver {
 
 		int groupCount = matcher.groupCount();
 		postLogMessage(String.format("matcher.groupCount() = %d%n", matcher.groupCount()));
+		log.infof("matcher.groupCount() = %d%n", matcher.groupCount());
 		for (int i = 1; i <= groupCount; i++) {
 			postLogMessage(String.format("group %d = \"%s\"", i, matcher.group(i)));
 		} // for
@@ -328,7 +288,7 @@ public class RegexDriver {
 			doc.insertString(doc.getLength(), afterGroup, attrBlack);
 		} catch (BadLocationException e) {
 			e.printStackTrace();
-		}//try
+		} // try
 
 	}// showGroup
 
@@ -340,7 +300,6 @@ public class RegexDriver {
 	}// setAttributes
 
 	// ........................................................................
-
 
 	private void setupPopupMenus() {
 		JPopupMenu popupMenu1 = new JPopupMenu();
@@ -356,7 +315,7 @@ public class RegexDriver {
 		removeItem2.addActionListener(adapterForRegexDriver);
 		popupMenu2.add(removeItem2);
 		cbSourceString.setComponentPopupMenu(popupMenu2);
-		
+
 		JPopupMenu popupLog = new JPopupMenu();
 		addPopup(txtLog1, popupLog);
 
@@ -372,10 +331,10 @@ public class RegexDriver {
 		popupLogPrint.setActionCommand(PUM_LOG_PRINT);
 		popupLogPrint.addActionListener(adapterForRegexDriver);
 		popupLog.add(popupLogPrint);
-		
-//		addPopup(txtLog,  popupLog);
+
+		// addPopup(txtLog, popupLog);
 	}// setupPopupMenus
-	
+
 	private void appClose() {
 		Preferences myPrefs = Preferences.userNodeForPackage(RegexDriver.class).node(this.getClass().getSimpleName());
 		Dimension dim = frmRegexDriver.getSize();
@@ -406,10 +365,10 @@ public class RegexDriver {
 	private void appInit() {
 		Preferences myPrefs = Preferences.userNodeForPackage(RegexDriver.class).node(this.getClass().getSimpleName());
 
-		frmRegexDriver.setSize(myPrefs.getInt("Width", 1287),myPrefs.getInt("Height", 477));
-//		frmRegexDriver.setSize(myPrefs.getInt("Width", 1287),myPrefs.getInt("Height", 477));
+		frmRegexDriver.setSize(myPrefs.getInt("Width", 1287), myPrefs.getInt("Height", 477));
+		// frmRegexDriver.setSize(myPrefs.getInt("Width", 1287),myPrefs.getInt("Height",
+		// 477));
 
-		
 		frmRegexDriver.setLocation(myPrefs.getInt("LocX", 100), myPrefs.getInt("LocY", 100));
 		splitPane1.setDividerLocation(myPrefs.getInt("Divider", 250));
 		txtReplacement.setText(myPrefs.get("Replacement", "<nothing>"));
@@ -427,15 +386,19 @@ public class RegexDriver {
 
 		doc = tpResult.getStyledDocument();
 		setAttributes();
-		
+
+		log.setTextPane(txtLog);
 		log.setDoc(txtLog.getStyledDocument());
 		log.addTimeStamp("Starting Regex Drive: ");
+		log.addNL(2);
+		
 
 		cbRegexCode.setModel(regexCodeModel);
 		cbSourceString.setModel(sourceStringModel);
 
 		setupPopupMenus();
-		txtLog1.setText("Right click on this log \r\npane  to print or clear\r\ncontents.\r\n\r\nRight Click on either\r\nRegex Code or Source\r\nString to bring up\r\noption to delete the\r\ncurrently displayed value\r\n");
+		txtLog1.setText(
+				"Right click on this log \r\npane  to print or clear\r\ncontents.\r\n\r\nRight Click on either\r\nRegex Code or Source\r\nString to bring up\r\noption to delete the\r\ncurrently displayed value\r\n");
 	}// appInit
 
 	public RegexDriver() {
@@ -450,8 +413,7 @@ public class RegexDriver {
 		frmRegexDriver = new JFrame();
 		frmRegexDriver.setIconImage(Toolkit.getDefaultToolkit().getImage(RegexDriver.class.getResource("Regex.jpg")));
 
-		frmRegexDriver.setTitle("Regex Driver  Ver 2.0");
-		//frmRegexDriver.setBounds(100, 100, 450, 300);
+		frmRegexDriver.setTitle("Regex Driver  Ver 2.5");
 		frmRegexDriver.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 0, 0 };
@@ -520,7 +482,7 @@ public class RegexDriver {
 		gbc_cbSourceString.gridx = 1;
 		gbc_cbSourceString.gridy = 3;
 		panelLeft.add(cbSourceString, gbc_cbSourceString);
-		
+
 		JLabel lblResult = new JLabel("  Result");
 		GridBagConstraints gbc_lblResult = new GridBagConstraints();
 		gbc_lblResult.anchor = GridBagConstraints.WEST;
@@ -681,15 +643,6 @@ public class RegexDriver {
 		panel_3.add(txtReplacement, gbc_txtReplacement);
 		txtReplacement.setFont(new Font("Courier New", Font.PLAIN, 18));
 		txtReplacement.setColumns(10);
-		
-//				JButton btnActOnResult = new JButton("Act On Result");
-//				GridBagConstraints gbc_btnActOnResult = new GridBagConstraints();
-//				gbc_btnActOnResult.insets = new Insets(0, 0, 5, 5);
-//				gbc_btnActOnResult.gridx = 1;
-//				gbc_btnActOnResult.gridy = 0;
-//				panel_1.add(btnActOnResult, gbc_btnActOnResult);
-//				btnActOnResult.addActionListener(adapterForRegexDriver);
-//				btnActOnResult.setActionCommand("btnActOnResult");
 
 		JPanel panelRight = new JPanel();
 		panelRight.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
@@ -710,43 +663,33 @@ public class RegexDriver {
 		panelRight.add(scrollPane, gbc_scrollPane);
 
 		txtLog1 = new JTextArea();
-//		txtLog.addMouseListener(new MouseAdapter() {
-//			@Override
-//			public void mouseClicked(MouseEvent me) {
-//				if (me.getClickCount() >= 2) {
-//					if (me.getComponent().getName() == "txtLog") {
-//						((JTextComponent) me.getComponent()).setText("");
-//					} // inner if
-//				} // outer if
-//			}
-//		});
 		txtLog1.setName("txtLog");
 		scrollPane.setViewportView(txtLog1);
-				
-				JScrollPane scrollPane_1 = new JScrollPane();
-				GridBagConstraints gbc_scrollPane_1 = new GridBagConstraints();
-				gbc_scrollPane_1.insets = new Insets(0, 0, 5, 0);
-				gbc_scrollPane_1.fill = GridBagConstraints.BOTH;
-				gbc_scrollPane_1.gridx = 1;
-				gbc_scrollPane_1.gridy = 0;
-				panelRight.add(scrollPane_1, gbc_scrollPane_1);
-				
-				JScrollPane scrollPane_2 = new JScrollPane();
-				scrollPane_1.setViewportView(scrollPane_2);
-				
-				txtLog = new JTextPane();
-				scrollPane_2.setViewportView(txtLog);
-		
-				btnSaveLog = new JButton("Save Log");
-				GridBagConstraints gbc_btnSaveLog = new GridBagConstraints();
-				gbc_btnSaveLog.insets = new Insets(0, 0, 0, 5);
-				gbc_btnSaveLog.fill = GridBagConstraints.HORIZONTAL;
-				gbc_btnSaveLog.gridx = 0;
-				gbc_btnSaveLog.gridy = 1;
-				panelRight.add(btnSaveLog, gbc_btnSaveLog);
-				btnSaveLog.setToolTipText("Nothing saved yet");
-				btnSaveLog.addActionListener(adapterForRegexDriver);
-				btnSaveLog.setActionCommand("btnSaveLog");
+
+		JScrollPane scrollPane_1 = new JScrollPane();
+		GridBagConstraints gbc_scrollPane_1 = new GridBagConstraints();
+		gbc_scrollPane_1.insets = new Insets(0, 0, 5, 0);
+		gbc_scrollPane_1.fill = GridBagConstraints.BOTH;
+		gbc_scrollPane_1.gridx = 1;
+		gbc_scrollPane_1.gridy = 0;
+		panelRight.add(scrollPane_1, gbc_scrollPane_1);
+
+		JScrollPane scrollPane_2 = new JScrollPane();
+		scrollPane_1.setViewportView(scrollPane_2);
+
+		txtLog = new JTextPane();
+		scrollPane_2.setViewportView(txtLog);
+
+		btnSaveLog = new JButton("Save Log");
+		GridBagConstraints gbc_btnSaveLog = new GridBagConstraints();
+		gbc_btnSaveLog.insets = new Insets(0, 0, 0, 5);
+		gbc_btnSaveLog.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnSaveLog.gridx = 0;
+		gbc_btnSaveLog.gridy = 1;
+		panelRight.add(btnSaveLog, gbc_btnSaveLog);
+		btnSaveLog.setToolTipText("Nothing saved yet");
+		btnSaveLog.addActionListener(adapterForRegexDriver);
+		btnSaveLog.setActionCommand("btnSaveLog");
 		splitPane1.setDividerLocation(150);
 
 		JPanel panelStatus = new JPanel();
@@ -768,15 +711,8 @@ public class RegexDriver {
 		});
 	}// initialize
 
-	private JFrame frmRegexDriver;
-	private JSplitPane splitPane1;
-	private JTextArea txtLog1;
-	private JComboBox<String> cbRegexCode;
-	private JComboBox<String> cbSourceString;
-	private JTextField txtReplacement;
-	
-	/*          POP UP MENU                 */
-	
+	/* POP UP MENU */
+
 	private static void addPopup(Component component, final JPopupMenu popup) {
 		component.addMouseListener(new MouseAdapter() {
 			public void mousePressed(MouseEvent mouseEvent) {
@@ -796,8 +732,9 @@ public class RegexDriver {
 			}// showMenu
 		});
 	}// addPopup
+
 	private void doLogClear() {
-			txtLog1.setText("");
+		txtLog1.setText("");
 	}// doLogClear
 
 	private void doLogPrint() {
@@ -817,8 +754,7 @@ public class RegexDriver {
 			e.printStackTrace();
 		} // try
 	}// doLogPrint
-	/*          POP UP MENU                 */
-
+	/* POP UP MENU */
 
 	public class AdapterForRegexDriver implements ActionListener, ItemListener {
 
@@ -853,7 +789,7 @@ public class RegexDriver {
 			case MNU_POP_REMOVE_REGEX:
 				doRemoveFromList(actionEvent);
 				break;
-				
+
 			case PUM_LOG_PRINT:
 				doLogPrint();
 				break;
@@ -896,12 +832,18 @@ public class RegexDriver {
 	private static final String BTN_SAVE_LOG = "btnSaveLog";
 	private static final String BTN_REPLACE_FIRST = "btnReplaceFirst";
 	private static final String BTN_REPLACE_ALL = "btnReplaceAll";
-	
+
 	private static final String PUM_LOG_PRINT = "popupLogPrint";
 	private static final String PUM_LOG_CLEAR = "popupLogClear";
 
-
 	// private static final String EMPTY_STRING = "";
+	private JFrame frmRegexDriver;
+	private JSplitPane splitPane1;
+	private JTextArea txtLog1;
+	private JComboBox<String> cbRegexCode;
+	private JComboBox<String> cbSourceString;
+	private JTextField txtReplacement;
+
 	private JTextPane tpResult;
 	private JLabel lblGroupBoundary;
 	private JButton btnFindNext;
