@@ -32,7 +32,9 @@ import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
@@ -50,6 +52,7 @@ public class RegexDriver {
 	private AppLogger log = AppLogger.getInstance();
 
 	private AdapterForRegexDriver adapterForRegexDriver = new AdapterForRegexDriver();
+
 	private StyledDocument doc;
 	private SimpleAttributeSet attrBlack = new SimpleAttributeSet();
 	private SimpleAttributeSet attrGreen = new SimpleAttributeSet();
@@ -93,10 +96,10 @@ public class RegexDriver {
 			Matcher matcher = pattern.matcher((CharSequence) cbSourceString.getSelectedItem());
 
 			if (matcher.matches()) {
-				log.infof(Color.RED,"%s%n","Match");
+				log.infof(Color.RED, "%s%n", "Match");
 				log.infof("start = %d, end = %d%n", matcher.start(), matcher.end());
 			} else {
-				log.infof(Color.RED,"%s%n","No Match");
+				log.infof(Color.RED, "%s%n", "No Match");
 				noChange("<< MATCHES - nothing matched >>");
 			} // if
 		} catch (Exception e) {
@@ -114,7 +117,7 @@ public class RegexDriver {
 		log.addNL();
 		try {
 			if (matcherForFind.find()) {
-				log.infof(Color.RED,"%s%n","Find");
+				log.infof(Color.RED, "%s%n", "Find");
 				log.infof("end = %d, start = %s%n", matcherForFind.end(), matcherForFind.start());
 				log.infof("group = |%s|%n", matcherForFind.group());
 				log.infof("Before group = |%s|%n", sourceText.substring(0, matcherForFind.start()));
@@ -140,7 +143,7 @@ public class RegexDriver {
 			if (matcherForFind.find(newStart)) {
 				String sourceText = (String) cbSourceString.getSelectedItem();
 
-				log.infof(Color.RED,"%s%n","FindNext");
+				log.infof(Color.RED, "%s%n", "FindNext");
 				log.infof("end = %d, start = %s%n", matcherForFind.end(), matcherForFind.start());
 				log.infof("group = |%s|%n", matcherForFind.group());
 				log.infof("Before group = |%s|%n", sourceText.substring(0, matcherForFind.start()));
@@ -160,10 +163,10 @@ public class RegexDriver {
 			Matcher matcher = pattern.matcher((CharSequence) cbSourceString.getSelectedItem());
 
 			if (matcher.lookingAt()) {
-				log.infof(Color.RED,"%s%n","LookingAt");
+				log.infof(Color.RED, "%s%n", "LookingAt");
 				log.infof("start = %d, end = %s%n", matcher.start(), matcher.end());
 			} else {
-				log.infof(Color.RED,"%s%n","Not LookingAt");
+				log.infof(Color.RED, "%s%n", "Not LookingAt");
 				noChange("<< LOOKING AT - not looking at >>");
 			} //
 		} catch (Exception e) {
@@ -262,7 +265,22 @@ public class RegexDriver {
 		StyleConstants.setForeground(attrRed, Color.RED);
 		StyleConstants.setForeground(attrBlue, Color.BLUE);
 	}// setAttributes
+	
+	private void setupPopupMenus() {
+		JPopupMenu popupMenu1 = new JPopupMenu();
+		JMenuItem removeItem1 = new JMenuItem("Remove item");
+		removeItem1.setActionCommand(MNU_POP_REMOVE_REGEX);
+		removeItem1.addActionListener(adapterForRegexDriver);
+		popupMenu1.add(removeItem1);
+		cbRegexCode.setComponentPopupMenu(popupMenu1);
 
+		JPopupMenu popupMenu2 = new JPopupMenu();
+		JMenuItem removeItem2 = new JMenuItem("Remove item");
+		removeItem2.setActionCommand(MNU_POP_REMOVE_SOURCE);
+		removeItem2.addActionListener(adapterForRegexDriver);
+		popupMenu2.add(removeItem2);
+		cbSourceString.setComponentPopupMenu(popupMenu2);
+	}//setupPopupMenus
 
 	private void appClose() {
 		Preferences myPrefs = Preferences.userNodeForPackage(RegexDriver.class).node(this.getClass().getSimpleName());
@@ -322,6 +340,9 @@ public class RegexDriver {
 
 		cbRegexCode.setModel(regexCodeModel);
 		cbSourceString.setModel(sourceStringModel);
+			
+		setupPopupMenus();
+		
 	}// appInit
 
 	public RegexDriver() {
